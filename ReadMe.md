@@ -1,4 +1,4 @@
-m Schroeder Protocol :
+Needham Schroeder Protocol :
 
 The protocol aims at sending secret from A to B by establishing the identities of both. Following steps : 
 
