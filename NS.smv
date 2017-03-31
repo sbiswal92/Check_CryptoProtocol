@@ -1,0 +1,102 @@
+MODULE alice (in0, in1, inkey, out0, out1, outkey)
+VAR
+  st : { request, wait, ack, finish };
+  nonce : { NONE, Na, Nb, Ne };
+ASSIGN
+  init (st) := request;
+  next (st) := case
+                 st = request                        : wait;
+                 st = wait & in0 = Na & inkey = Ka   : ack;
+                 st = ack                            : finish;
+                 TRUE                                : st;
+               esac;
+
+  init (nonce) := NONE;
+  next (nonce) := case
+                    st = wait & in0 = Na & inkey = Ka : in1;
+                    TRUE                              : nonce;
+                  esac;
+
+  init (out0) := NONE;
+  next (out0) := case
+                   st = request : Na;
+                   st = ack     : nonce;
+                   TRUE         : out0;
+                 esac;
+
+  init (out1) := NOONE;
+  next (out1) := case
+                   st = request : Ia;
+                   st = ack     : NOONE;
+                   TRUE         : out1;
+                 esac;
+
+  init (outkey) := NOKEY;
+  next (outkey) := case
+                     st = request : { Kb };
+                     TRUE         : outkey;
+                   esac;
+FAIRNESS running;
+
+MODULE bob (in0, in1, inkey, out0, out1, outkey)
+VAR
+  st : { wait, receive, confirm, done };
+  nonce : { NONE, Na, Nb, Ne };
+  other : { NOONE, Ia, Ib, Ie };
+ASSIGN
+  init (st) := wait;
+  next (st) := case
+                 st = wait & in0 = Na & in1 = Ia & inkey = Kb       : receive;
+                 st = wait & in0 = Ne & in1 = Ie & inkey = Kb       : receive;
+                 st = receive                                       : confirm;
+                 st = confirm & in0 = Nb & in1 = NOONE & inkey = Kb : done;
+                 TRUE                                               : st;
+               esac;
+
+  init (nonce) := NONE;
+  next (nonce) := case
+                    st = wait & in0 = Na & in1 = Ia & inkey = Kb : in0;
+                    st = wait & in0 = Ne & in1 = Ie & inkey = Kb : in0;
+                    TRUE                                         : nonce;
+                  esac;
+
+  init (other) := NOONE;
+  next (other) := case
+                    st = wait & in0 = Na & in1 = Ia & inkey = Kb : in1;
+                    st = wait & in0 = Ne & in1 = Ie & inkey = Kb : in1;
+                    TRUE                                         : other;
+                  esac;
+
+  init (out0) := NONE;
+  next (out0) := case
+                   st = confirm : nonce;
+                   TRUE         : out0;
+                 esac;
+
+  init (out1) := NONE;
+  next (out1) := case
+                   st = confirm : Nb;
+                   TRUE         : out1;
+                 esac;
+
+  init (outkey) := NOKEY;
+  next (outkey) := case
+                     st = confirm & other = Ia : Ka;
+                     st = confirm & other = Ie : Ke;
+                     TRUE                      : outkey;
+                   esac;
+FAIRNESS running;
+
+MODULE main 
+VAR
+  a_in0 : { NONE, Na, Nb, Ne };
+  a_in1 : { NONE, Na, Nb, Ne };
+  a_out0 : { NONE, Na, Nb, Ne };
+  a_out1 : { NOONE, Ia, Ib, Ie };
+  a_inkey : { NOKEY, Ka, Kb, Ke };
+  a_outkey : { NOKEY, Ka, Kb, Ke };
+  a : process alice (a_in0, a_in1, a_inkey, a_out0, a_out1, a_outkey);
+  b : process bob (a_out0, a_out1, a_outkey, a_in0, a_in1, a_inkey);
+FAIRNESS running;
+
+LTLSPEC F (a.st = finish & b.st = done)
