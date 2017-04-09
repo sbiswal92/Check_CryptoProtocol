@@ -1,0 +1,189 @@
+
+MODULE alice (rcv1, rcv2, rcvkey, send1, send2, sendkey)
+-- Alice can receive : (rcv1=nonceA and rcv2=nonceB=rcv_secret)
+-- Alice can send : (send1=nonceA and send2=self-identity) OR (send1=nonceB)
+
+VAR
+  rcv_secret : { NONE, NA, NB, NI };
+  state : { a_initiate, a_wait, a_rcv_and_send, a_done };
+  
+ASSIGN
+  init(state) := a_initiate;
+  
+  init(send1) := NONE;
+  init(send2) := NOID;
+  init(sendkey) := NOKEY;
+  
+  init(rcv_secret) := NONE;
+
+-- What activity Alice does?
+
+  next(state):= case
+  				 --Alice initiates communication and waits for Bob to reply in the next step
+                 state = a_initiate : a_wait;  
+                 
+                 --Alice waited for Bob's reply and in the next step it receives reply from Bob and sends its next msg
+                 state = a_wait & rcv1 = NA & rcvkey = Ka : a_rcv_and_send;
+                 
+                 --Alice receives the reply & sends the next msg and declares its role complete in the run of the protocol in the next step
+                 state = a_rcv_and_send : a_done;
+                 
+                 --Alice stays in the same state else.
+                 TRUE : state;
+               esac;
+                  
+-- What public key does Alice encrypt the message with?
+-- Alice does "sending" when it is in "a_initiate" or "a_rcv_and_send" state only.
+  
+  next(sendkey):= case
+  					-- In "a_initiate" state, Alice is chooses the person it is establishing connection with.
+                     state = a_initiate : { Kb };
+                     
+                     TRUE : sendkey;
+                   esac;
+                   
+
+-- What first parameter does Alice send?
+-- Alice does "sending" when it is in "a_initiate" or "a_rcv_and_send" state only.
+
+  next(send1):= case
+  
+  				   --Alice sends its own nonce as first parameter during initiation	
+                   state = a_initiate:NA;
+                   
+                   --Alice sends Bob's nonce (secret it had received) as first parameter during the rcv_and_send state 
+                   state = a_rcv_and_send : rcv_secret;
+                   
+                   
+                   TRUE         : send1;
+                 esac;
+
+-- What second parameter does Alice send?
+-- Alice does "sending" when it is in "a_initiate" or "a_rcv_and_send" state only.
+
+  next(send2):= case
+  				    --Alice sends its own identity as second parameter during initiation	
+                   state = a_initiate : Ia;
+                   
+                   --Alice sends no identity as second parameter the rcv_and_send state	
+                   state = a_rcv_and_send : NOID;
+                     
+                   TRUE         : send2;
+                 esac;
+
+
+-- What nonce (secret) does Alice receives and accepts?
+-- Alice does "receive" when it is in "a_wait" state only.
+
+  next(rcv_secret):= case
+  
+  					-- Alice receives the new nonce from the second parameter 
+                    state = a_wait & rcv1=NA & rcvkey=Ka : rcv2;
+                       
+                    TRUE : rcv_secret;
+                  esac;
+
+FAIRNESS running;
+
+
+
+MODULE bob (rcv1, rcv2, rcvkey, send1, send2, sendkey)
+-- Bob can send : (send1=nonceA=rcv_secret and send2=nonceB)
+-- Bob can receive :(rcv1=nonceA=rcv_secret and rcv2=Alice_identity=rcv_id) OR (rcv1=nonceB)
+
+VAR
+  state:{b_free,b_receive,b_checks_sender,b_done};
+  rcv_secret:{NONE,NA,NB,NI};
+  rcv_id:{NOID,Ia,Ib,Ie};
+  
+ASSIGN
+  init(state):=b_free;
+  
+  init(rcv_secret):=NONE;
+  init(rcv_id) :=NOID;
+  
+  init(send1):=NONE;
+  init(send2):=NONE;
+  init(sendkey):=NOKEY;
+  
+  next(state):= case
+  				
+  				 -- Bob is "free" and gets request from Alice, it moves to "receive" in the next step
+                 state = b_free & rcv1=NA & rcv2=Ia & rcvkey=Kb : b_receive;
+                 
+                 -- Bob is "received" msg from Alice and now moves to state where it "checks the sender" by sending (NA,NB)Ka
+                 state = b_receive : b_checks_sender;
+                 
+                 -- Bob gets the reply from Alice  and declares the protocol run to be complete by moving to state "done"
+                 state = b_checks_sender & rcv1=NB & rcv2=NOID & rcvkey=Kb : b_done;
+                 
+                 TRUE: state;
+               esac;
+
+
+  next(rcv_secret):= case
+  					-- Bob is "free" and gets request from Alice, it receives Alice's nonce as the first parameter  = rcv_secret
+                    state = b_free & rcv1=NA & rcv2=Ia & rcvkey=Kb : rcv1;
+        
+                    TRUE: rcv_secret;
+                  esac;
+
+
+  next(rcv_id):= case
+  					-- Bob is "free" and gets request from Alice, it receives Alice's identity as the second parameter  = rcv_id
+                    state = b_free & rcv1=NA & rcv2=Ia & rcvkey=Kb : rcv2;
+    
+                    TRUE: rcv_id;
+                  esac;
+
+  next(send1):= case
+  				   -- Bob "checks the sender" by sending (NA,NB)Ka
+                   state = b_checks_sender : rcv_secret;
+                   
+                   TRUE : send1;
+                 esac;
+
+  next(send2):= case
+  				   -- Bob "checks the sender" by sending (NA,NB)Ka
+                   state = b_checks_sender : NB;
+                   
+                   TRUE : send2;
+                 esac;
+
+  next (sendkey) := case
+  					 -- Bob is "checks the sender" by sending (NA,NB)Ka
+                     state = b_checks_sender & rcv_id=Ia : Ka;
+
+                     TRUE : sendkey;
+                   esac;
+FAIRNESS running;
+
+
+
+MODULE main 
+VAR
+
+  -- Alice's possible inputs
+  a_rcv1:{ NONE, NA, NB, NI };
+  a_rcv2:{ NONE, NA, NB, NI };
+  a_rcvkey:{ NOKEY, Ka, Kb, Ke };
+  
+  -- Alice's possible outputs
+  a_send1:{ NONE, NA, NB, NI };
+  a_send2:{ NOID, Ia, Ib, Ii };
+  a_sendkey:{ NOKEY, Ka, Kb, Ke };
+  
+  
+  -- Alice(a_rcvd,a_sent)
+  -- At the start ("a_initiate")of communication, a_rcvd = empty
+  
+  a : process alice (a_rcv1, a_rcv2, a_rcvkey, a_send1, a_send2, a_sendkey); 
+  
+  
+  -- Bob(b_rcvd, b_sent) = Bob(a_sent in previous step, a_rcvd in the next step)
+  b : process bob (a_send1, a_send2, a_sendkey, a_rcv1, a_rcv2, a_rcvkey);
+  
+  
+FAIRNESS running;
+
+LTLSPEC F (a.state = a_done & b.state = b_done)
