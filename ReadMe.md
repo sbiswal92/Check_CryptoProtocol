@@ -1,4 +1,4 @@
-Needham Schroeder Protocol :
+## Needham Schroeder Protocol : (Implemented)
 
 The protocol aims at sending secret from A to B by establishing the identities of both. Following steps : 
 
@@ -11,7 +11,7 @@ The protocol aims at sending secret from A to B by establishing the identities o
 6. B decrypts it and verifies sender is A by matching "Nb"
 
 
-Attack : 
+### Attack : 
 If somehow an Imposter, I manages to convince A to send him message then I can masquerade as A while communicating with B as follows : 
 
 1. A sends (part of a secret : Na) message to I encrypted with KI : (A,Na)<KI> 
@@ -26,7 +26,39 @@ If somehow an Imposter, I manages to convince A to send him message then I can m
 Hence, the imposter manages to get the secret (Na,Nb)
 
 
-Kerberos Protocol :
+
+## Otway-Rees Protocol : (Implemented)
+
+The protocol aims at sending secret from A to B by establishing the identities of both with a Server S. A communicates with S only via B. Following steps : 
+
+Assumptions : 
+Kas -- encryption/decryption key is available with A and S
+Kbs -- encryption/decryption key is available with B and S
+Kab -- encryption/decryption key is to be obtained from S for A and B
+
+1. A sends to B : S,A,B,(NA,S,A,B)Kas
+2. B sends to S : S,A,B,(NA,S,A,B)Kas, (NB,S,A,B)Kbs
+3. S sends to B : S,(NA,Kab)Kas,(NB,Kab)Kbs
+4. B sends to A : S,(NA,Kab)Kas
+
+Now, A and B both have their common key, Kab which can be used to send secret.
+
+### Attack :
+If intruder I impersonates as B : I(B) and does not send data over to S the following attack can be tracked :
+
+Assumptions : 
+Kai -- encryption/decryption key is available with A and I(B)
+Kab -- encryption/decryption key is to be obtained from S for A and B
+
+1. A sends to I(B) : S,A,B,(NA,S,A,I)Kas
+2. I(B) sends back to A the same message : S,(NA,S,A,I)Kas
+
+Since A thinks I is the actual B due to impersonation, A interpretes this message containing two parts, its nonce:(NA) and Kab:(S,A,B). A now sends secret to I(B) with key as (S,A,B) which I already knows of and I gets hold of the secret.
+
+## Neuman–Stubblebine protocol : (Pending)
+## Yaholom protocol : (Pending)
+
+## Kerberos Protocol : (To be dropped, probably)
 
 1. A sends B an authenticator message encrypted with secret key K : (Auth)K
 2.  B decrypts the message using K and verifies the content of Auth 
