@@ -1,0 +1,320 @@
+-- alice interacts with bob
+MODULE alice (rcv1, rcv2, rcvkey,rcvid, send1, send2, sendkey,sendid)
+VAR
+  state:{a_initiate,a_wait,a_done};
+  rcv_newinfo :{NOINFO, IA ,IB , IS , IAB, ISAB, IBS, IAS, Kab, Kbs, Kas};
+ASSIGN
+  init(state) := a_initiate;
+  init(rcv_newinfo) := NOINFO;
+  init(send1) :=NONE;
+  init(send2) :=NOINFO;
+  init(sendkey) :=NOKEY;
+  init(sendid) :=NOID;
+  
+  -- What activity Alice does?
+  next(state):= case
+  				 --Alice initiates communication and waits for Bob to reply in the next step
+                 state = a_initiate : a_wait;  
+                 
+                 --Alice waited for Bob's reply and in the next step it receives reply from Bob
+                 state = a_wait & rcv1 = NA & rcvkey=Kas & rcvid=IS : a_done;
+        
+                 --Alice stays in the same state else.
+                 TRUE : state;
+               esac;
+   
+   next(rcv_newinfo):= case
+                 --Alice waited for Bob's reply and in the next step it receives reply from Bob
+                 state = a_wait & rcv1=NA & rcvkey=Kas & rcvid=IS: rcv2;
+        
+                 --Alice stays in the same state else.
+                 TRUE : rcv_newinfo;
+               esac;
+
+	next(send1):= case	
+				state = a_initiate & next(state)=a_wait: NA;
+				 
+				TRUE : send1;
+			esac;
+			
+	next(send2):= case	
+				state = a_initiate & next(state)=a_wait : ISAB;
+				TRUE : send2;
+			esac;
+			
+
+	next(sendkey):= case	
+				state = a_initiate & next(state)=a_wait: Kas;
+				 
+				TRUE : sendkey;
+			esac;
+			
+			
+	next(sendid):= case	
+				state = a_initiate : ISAB;
+				TRUE : sendid;
+			esac;	
+
+
+--- If Alice has Kai thinking to be Kab  received via rcv2 then secret leaked                           
+               
+
+FAIRNESS running;
+
+
+-- bob interacts with alice and server
+-- Chunk2 is useful when interacting with Server
+
+MODULE bob (rcv1Chunk1, rcv2Chunk1, rcvkeyChunk1, rcv1Chunk2, rcv2Chunk2, rcvkeyChunk2, rcvid, send1Chunk1, send2Chunk1, sendkeyChunk1, send1Chunk2, send2Chunk2, sendkeyChunk2, sendid)
+VAR
+state:{b_rcvA, b_sendA, b_rcvS, b_sendS,b_done};
+rcv_newinfo :{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; 
+
+ASSIGN
+init(send1Chunk2):= NONE;
+init(send2Chunk2):= NOINFO;
+init(sendkeyChunk2):= NOKEY;
+init(sendid):= NOID;
+
+init(state):= b_rcvA; --ready to receive from A
+init(rcv_newinfo):=NOINFO; 
+ 
+ next(state):= case
+ 				state = b_rcvA & rcvkeyChunk1!=Kbs & rcvid = ISAB : b_sendS; 
+ 				state = b_sendS : b_rcvS; 
+ 				state = b_rcvS & rcv1Chunk2=NB  & rcvkeyChunk2=Kbs & rcvid = IS: b_sendA;
+ 				state = b_sendA : b_done;
+				TRUE : state;
+			    esac;	
+
+ next(send1Chunk1):=case	
+					state=b_sendS : rcv1Chunk1;
+					state=b_sendA & next(state) = b_done : rcv1Chunk1 ;
+					TRUE : send1Chunk1;
+				    esac;	
+			
+ next(send2Chunk1):=case	
+					state=b_sendS : rcv2Chunk1	;
+					state=b_sendA & next(state) = b_done : rcv2Chunk1 ;
+					TRUE : send2Chunk1;
+			        esac;	
+			
+ next(sendkeyChunk1):=case	
+					  state=b_sendS : rcvkeyChunk1;
+					  state=b_sendA & next(state) = b_done : rcvkeyChunk1 ;
+					  TRUE : sendkeyChunk1;
+			      	  esac;
+			         
+			
+ next(send1Chunk2):=case	
+					state=b_sendS : NB;
+					state=b_sendA & next(state) = b_done : NONE;
+					TRUE : send1Chunk2;
+				    esac;	
+			
+ next(send2Chunk2):=case	
+					state=b_sendS : ISAB;
+					state=b_sendA & next(state) = b_done : NOINFO;
+					TRUE : send2Chunk2;
+			        esac;	
+			
+ next(sendkeyChunk2):=case	
+					  state=b_sendS : Kbs;
+					  state=b_sendA : NOKEY;
+					  TRUE : sendkeyChunk2;
+			          esac;
+			         
+ next(sendid):=case	
+ 			   state = b_sendS : rcvid;
+ 			   state = b_sendA & next(state) = b_done : rcvid;
+			   TRUE : rcvid;
+			   esac;	
+			         
+ next(rcv_newinfo):=case	
+					state=b_rcvS & rcvkeyChunk1!=Kbs & rcv1Chunk2=NB & rcvkeyChunk2=Kbs & rcvid=IS : rcv2Chunk2;
+					TRUE : rcv_newinfo;
+			        esac;	
+
+FAIRNESS running;
+
+
+-- server interacts with bob
+MODULE server (rcv1Chunk1, rcv2Chunk1, rcvkeyChunk1, rcv1Chunk2, rcv2Chunk2, rcvkeyChunk2, rcvid, send1Chunk1, send2Chunk1, sendkeyChunk1, send1Chunk2, send2Chunk2, sendkeyChunk2, sendid)
+VAR
+state:{s_idle,s_rcvB, s_sendB,s_done};
+gen_newinfo :{NOINFO, IA, IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; 
+ASSIGN
+init(state):= s_idle;
+init(gen_newinfo):= NOINFO;
+init(send2Chunk1):=NOINFO;
+init(send1Chunk1):=NONE;
+init(send1Chunk2):=NONE;
+init(sendkeyChunk1):=NOKEY;
+init(sendkeyChunk2):=NOKEY;
+--init(sendid):=NOID;
+
+
+next(state):= case
+				state = s_idle : s_rcvB;
+ 				state = s_rcvB & rcv1Chunk1=NA & rcv2Chunk1=ISAB & rcvkeyChunk1=Kas & rcv1Chunk2=NB & rcv2Chunk2=ISAB & rcvkeyChunk2=Kbs & rcvid = ISAB : s_sendB;
+ 				state = s_sendB : s_done;
+				TRUE : state;
+			    esac;	
+
+next(gen_newinfo):= case
+				state = s_rcvB  & rcv1Chunk1=NA & rcv2Chunk1=ISAB & rcvkeyChunk1=Kas & rcv1Chunk2=NB & rcv2Chunk2=ISAB & rcvkeyChunk2=Kbs & rcvid = ISAB : Kab ; -- Have received these stuff so prepare information
+				TRUE : gen_newinfo;
+			    esac;	
+			    
+next(send1Chunk1):= case
+				state = s_sendB : rcv1Chunk1; -- Ready to send so preparing information to be sent
+				TRUE : send1Chunk1;
+			    esac;
+			    			    
+next(send2Chunk1):= case
+				state = s_sendB : gen_newinfo; -- Ready to send so preparing information to be sent
+				TRUE : send2Chunk1;
+			    esac;	
+			    
+next(sendkeyChunk1):= case
+				state = s_sendB : rcvkeyChunk1; -- Ready to send so preparing information to be sent
+				TRUE : sendkeyChunk1;
+			    esac;
+			    
+next(send1Chunk2):= case
+				state = s_sendB : rcv1Chunk2; -- Ready to send so preparing information to be sent
+				TRUE : send1Chunk2;
+			    esac;
+			    
+next(send2Chunk2):= case
+				state = s_sendB : gen_newinfo; -- Ready to send so preparing information to be sent
+				TRUE : send2Chunk2;
+			    esac;
+			    			    
+			    
+next(sendkeyChunk2):= case
+				state = s_sendB : rcvkeyChunk2; -- Ready to send so preparing information to be sent
+				TRUE : sendkeyChunk2;
+			    esac;
+
+next(sendid):= case
+				state = s_sendB : IS; -- Ready to send so ID to be sent
+				TRUE : rcvid;
+			    esac;	
+
+
+FAIRNESS running;
+
+MODULE intruder (rcv1Chunk1, rcv2Chunk1, rcvkeyChunk1, rcv1Chunk2, rcv2Chunk2, rcvkeyChunk2, rcvid, send1Chunk1, send2Chunk1, sendkeyChunk1, send1Chunk2, send2Chunk2, sendkeyChunk2, sendid)
+VAR
+rcv_newinfo :{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; 
+
+ASSIGN
+init(send2Chunk2):= NOINFO;
+init(sendkeyChunk2):= NOKEY;
+init(rcv_newinfo):=NOINFO; 
+ 
+next(rcv_newinfo):= case
+					rcvid=ISAB : ISAB; -- Implies A is trying to contact B and S ; So good opportunity to impersonate
+					TRUE:rcv_newinfo;
+					esac;
+
+next(send2Chunk1):= case
+					rcvid=ISAB : rcv2Chunk1; -- Implies A is trying to contact B and S ; So good opportunity to impersonate
+					TRUE:send2Chunk1;
+					esac;
+					
+next(send1Chunk1):= case
+					rcvid=ISAB : rcv1Chunk1; -- Implies A is trying to contact B and S ; So good opportunity to impersonate
+					TRUE:send1Chunk1;
+					esac;					
+
+next(sendkeyChunk1):= case
+					rcvid=ISAB : rcvkeyChunk1; -- Implies A is trying to contact B and S ; 
+					TRUE:sendkeyChunk1;
+					esac;
+					
+next(sendid):= case
+					rcvid=ISAB : IS; -- I sends the id of S to impersonate S.
+					TRUE:sendid;
+					esac;
+					
+FAIRNESS running;
+
+
+
+MODULE main 
+VAR
+
+  -- Alice's possible inputs
+  a_rcv1:{ NONE, NA, NB, NI }; --nonces
+  a_rcv2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  a_rcvkey:{ NOKEY, Kas, Kab, Kbs }; -- keys
+  a_rcvid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS}; -- IDs
+  
+  -- Alice's possible outputs
+  a_send1:{ NONE, NA, NB, NI }; --nonces
+  a_send2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  a_sendkey:{ NOKEY, Kas, Kab, Kbs }; -- keys
+  a_sendid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS}; -- IDs
+  
+  
+  -- Bob's possible inputs
+  rcv1Chunk2:{ NONE, NA, NB, NI };  -- nonces
+  rcv2Chunk2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  rcvkeyChunk2:{ NOKEY, Kab, Kbs, Kas }; -- keys
+  b_rcvid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS}; -- IDs
+  b_sendid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS}; -- IDs
+  
+  -- Bob's possible outputs
+  send1Chunk2:{ NONE, NA, NB, NI };  -- nonces
+  send2Chunk2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  sendkeyChunk2:{ NOKEY, Kab, Kbs, Kas }; -- keys
+  
+  -- Server's Parameters
+  s_rcvid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS}; -- IDs
+  s_sendid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS};-- IDs
+  sendInfoS:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys
+  
+  s_send1Chunk1:{ NONE, NA, NB, NI };  -- nonces
+  s_send2Chunk1:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  s_sendkeyChunk1:{ NOKEY, Kab, Kbs, Kas }; -- keys
+  
+  s_send1Chunk2:{ NONE, NA, NB, NI };  -- nonces
+  s_send2Chunk2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas}; -- keys/IDs
+  s_sendkeyChunk2:{NOKEY, Kab, Kbs, Kas}; -- keys
+  
+  --IDsent
+  sentid:{NOID,IA,IB,IS,IAB,ISAB,IBS,IAS};
+  
+  --intruder parameters can be
+  i_rcv1Chunk2:{NONE, NA, NB, NI };
+  i_rcv2Chunk2:{NOINFO, IA,IB,IS, IAB, ISAB, IBS, IAS, Kab, Kbs, Kas};
+  i_rcvkeyChunk2:{NOKEY, Kab, Kbs, Kas};
+  
+  -- Alice sends msg with key
+  -- init last 3 params
+  
+  a : process alice (s_send1Chunk1, s_send2Chunk1, s_sendkeyChunk1, b_sendid, a_send1, a_send2, a_sendkey, a_sendid); 
+  
+  -- Bob receives Alice's msg as Chunk 1 and empty as Chunk 2
+  -- Bob send Alice's msg as Chunk 1 and self-intialized Chunk 2
+  -- init last 3 params and b_rcvid
+  
+ -- Intruder that impersonates as B (Hence, A can initiate the communication with I)
+  i : process intruder (a_send1, a_send2, a_sendkey, i_rcv1Chunk2, i_rcv2Chunk2, i_rcvkeyChunk2, a_sendid, s_send1Chunk1, s_send2Chunk1, s_sendkeyChunk1, i_rcv1Chunk2, i_rcv2Chunk2, i_rcvkeyChunk2, b_sendid);
+ 
+ 
+  b : process bob (a_send1, a_send2, a_sendkey, s_send1Chunk2, s_send2Chunk2, s_sendkeyChunk2, a_sendid, a_send1, a_send2, a_sendkey, send1Chunk2, send2Chunk2, sendkeyChunk2, b_sendid);
+  
+  -- Server receives Bob's msg
+  -- Server sends respective nonces and new key
+  -- init SendInfoS
+  
+ s : process server (a_send1, a_send2, a_sendkey, send1Chunk2, send2Chunk2, sendkeyChunk2, a_sendid, s_send1Chunk1, s_send2Chunk1, s_sendkeyChunk1, s_send1Chunk2, s_send2Chunk2, s_sendkeyChunk2, a_sendid);
+  
+  
+  
+--FAIRNESS running;
+
+LTLSPEC  G(a.rcv_newinfo != ISAB)
