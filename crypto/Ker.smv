@@ -1,0 +1,287 @@
+MODULE message
+VAR 
+encryption_key : {NOKEY,Kas,Kbs,Kab};
+session_key:{NOKEY,Kab};
+timestamp:0..5;
+lifetime:0..1;
+identifier:{NOID, IA, IB, IS, IAB, IAS, IBS};
+
+MODULE chunks
+VAR 
+chunk1 : message;
+chunk2 : message;
+
+
+-- alice interacts with bob via chunks
+-- Sending of Chunk1 is only meant for Bob -- we meddle with chunk2 only.
+-- Receiving of Chunk1 is meant for Alice here.
+
+MODULE alice (rcv_msg,send_msg)
+VAR
+  state:{a_idle, a_initiate_s, a_send_s, a_rcv_s, a_send_b, a_done};
+  sessionkey_a_has:{NOKEY,Kab};
+  a_timestamp:0..5;
+ASSIGN
+  init(state) := a_idle;
+  init(sessionkey_a_has) := NOKEY;
+  init(a_timestamp):=0;
+  
+  
+  next(state):= case
+                 state = a_idle :  a_initiate_s;  
+                 state =  a_initiate_s : a_send_s;
+                 state=a_send_s & rcv_msg.chunk1.encryption_key=Kas & rcv_msg.chunk1.identifier=IB : a_rcv_s;
+                 state=a_rcv_s : a_send_b;
+                 state=a_send_b & rcv_msg.chunk1.encryption_key=sessionkey_a_has & rcv_msg.chunk1.timestamp = (a_timestamp+1) mod 2 : a_done;  
+                 state=a_done: a_idle;           
+                 TRUE : state;
+               esac;
+               
+   --------------------Stays same----------------------            
+    next(send_msg.chunk1.encryption_key):=case
+   						  state = a_rcv_s & rcv_msg.chunk2.encryption_key!=Kas : rcv_msg.chunk2.encryption_key;
+   						  TRUE: send_msg.chunk1.encryption_key;
+   						  esac;
+   						  
+   next(send_msg.chunk1.session_key):=case
+   						  state = a_rcv_s & rcv_msg.chunk2.encryption_key!=Kas : rcv_msg.chunk2.session_key;
+   						  TRUE: send_msg.chunk1.session_key;
+   						  esac;
+   						  
+   next(send_msg.chunk1.timestamp):=case
+   						  state = a_rcv_s & rcv_msg.chunk2.encryption_key!=Kas : rcv_msg.chunk2.timestamp;
+   						  TRUE: send_msg.chunk1.timestamp;
+   						  esac;	
+   	
+   next(send_msg.chunk1.lifetime):=case
+   						  state = a_rcv_s & rcv_msg.chunk2.encryption_key!=Kas : rcv_msg.chunk2.lifetime;
+   						  TRUE: send_msg.chunk1.lifetime;
+   						  esac;	
+   						  
+   next(send_msg.chunk1.identifier):=case
+   						  state = a_rcv_s & rcv_msg.chunk2.encryption_key!=Kas : rcv_msg.chunk2.identifier;
+   						  TRUE: send_msg.chunk1.identifier;
+   						  esac;	
+  ------------------------------------------------- 	
+   	
+   next(send_msg.chunk2.encryption_key):=case
+   										state = a_rcv_s : rcv_msg.chunk1.session_key;
+   										TRUE: send_msg.chunk2.encryption_key;
+   		   								esac;
+   		   
+   		  
+   		   
+   next(send_msg.chunk2.session_key):=case
+   									  TRUE: send_msg.chunk2.session_key;
+   		   							  esac;
+   		   
+   
+   next(send_msg.chunk2.timestamp):=case
+   									state=a_rcv_s : a_timestamp;
+   									TRUE: a_timestamp;
+   		   							esac;
+   		   
+   		   
+   next(send_msg.chunk2.lifetime):=case
+   								   TRUE: send_msg.chunk2.lifetime;
+   								   esac;
+   		   
+   
+   next(send_msg.chunk2.identifier):=case
+   									state=a_idle : IAB;
+   									state=a_rcv_s : IA;
+   									TRUE: send_msg.chunk2.identifier;	
+   		   esac;
+   		   
+   next(sessionkey_a_has):=case
+   							state=a_rcv_s : rcv_msg.chunk1.session_key;
+   							TRUE: sessionkey_a_has;
+   		   esac;	
+   
+   next(a_timestamp):=case
+   							state=a_rcv_s : (a_timestamp+1) mod 2;
+   							state=a_done :  (a_timestamp+1) mod 2;
+   							TRUE: a_timestamp;
+   		   esac;      
+
+FAIRNESS running;
+
+
+
+
+-- Receives Chunk1 for itself, Bob.
+-- Sends Chunk1 meant for A
+MODULE bob (rcv_msg,send_msg)
+VAR
+state:{b_idle, b_rcv_a, b_send_a};
+sessionkey_b_has:{NOKEY,Kab};
+
+ASSIGN
+init(state) := b_idle;
+init(sessionkey_b_has) := NOKEY;
+  
+  
+   next(state):= case
+                 state=b_idle & rcv_msg.chunk1.encryption_key=Kbs & rcv_msg.chunk1.session_key = rcv_msg.chunk2.encryption_key & rcv_msg.chunk1.identifier = rcv_msg.chunk2.identifier & (rcv_msg.chunk1.timestamp+1) mod 2=rcv_msg.chunk2.timestamp : b_rcv_a;
+                 state=b_rcv_a : b_send_a;  
+                 state=b_send_a: b_idle;           
+                 TRUE : state;
+                 esac;
+    
+   next(sessionkey_b_has):=case
+   						  TRUE: sessionkey_b_has;
+   						  esac;
+               
+   next(send_msg.chunk2.encryption_key):=case
+   						  TRUE: send_msg.chunk1.encryption_key;
+   						  esac;
+   						  
+   next(send_msg.chunk2.session_key):=case
+   						  TRUE: send_msg.chunk1.session_key;
+   						  esac;
+   						  
+   next(send_msg.chunk2.timestamp):=case
+   						  TRUE: send_msg.chunk1.timestamp;
+   						  esac;	
+   	
+   next(send_msg.chunk2.lifetime):=case
+   						  TRUE: send_msg.chunk1.lifetime;
+   						  esac;	
+   						  
+   next(send_msg.chunk2.identifier):=case
+   						  TRUE: send_msg.chunk1.identifier;
+   						  esac;
+   						  
+   	
+  
+   next(send_msg.chunk1.encryption_key):=case
+   										state = b_rcv_a : rcv_msg.chunk1.session_key;
+   										TRUE: send_msg.chunk1.encryption_key;
+   		   								esac;
+   		   								
+   	next(send_msg.chunk1.timestamp):=case
+   										state = b_rcv_a : ( rcv_msg.chunk2.timestamp +1) mod 2 ;
+   										TRUE: send_msg.chunk1.timestamp;
+   		   								esac;
+   	 	   									   
+   	next(send_msg.chunk1.lifetime):=case
+   								   TRUE: send_msg.chunk1.lifetime;
+   								   esac;								
+   	next(send_msg.chunk1.identifier):=case
+   								   TRUE: send_msg.chunk1.identifier;
+   								   esac;								
+   	next(send_msg.chunk1.session_key):=case
+   								   TRUE: send_msg.chunk1.session_key;
+   								   esac;								
+   		   
+  
+
+FAIRNESS running;
+
+--Rcvs Chunk2 from A
+--Sends Chunk1 to A ; Chunk2 to A meant for B
+MODULE server (rcv_msg,send_msg)
+VAR
+state:{s_idle, s_rcv_a, s_send_a};
+server_timestamp : 0..5;
+key_lifetime : 0..1;
+server_gen_info:{NOINFO,Kab}; 
+
+  ASSIGN
+  init(state) := s_idle;
+  init(server_timestamp):=0;
+  init(key_lifetime):=1;
+  init(server_gen_info):=NOINFO;
+  
+ 
+  
+
+next(state):= case
+                 state=s_idle & rcv_msg.chunk2.encryption_key=NOKEY & rcv_msg.chunk2.identifier= IAB : s_rcv_a;
+                 state=s_rcv_a : s_send_a;  
+                 state=s_send_a: s_idle;           
+                 TRUE : state;
+                 esac;
+                 
+next(server_timestamp):=case
+						state=s_send_a : (server_timestamp+1) mod 2;
+						TRUE: server_timestamp;
+						esac;
+
+next(key_lifetime):=case
+						TRUE: key_lifetime;
+						esac;
+						
+next(server_gen_info):=case
+						state=s_send_a : Kab;
+						TRUE: server_gen_info;
+						esac;
+
+    next(send_msg.chunk1.encryption_key):=case
+   										state = s_rcv_a : Kas;
+   										TRUE: send_msg.chunk1.encryption_key;
+   		   								esac;
+   		   								
+   	next(send_msg.chunk1.timestamp):=case
+   										state = s_rcv_a : server_timestamp ;
+   										TRUE: send_msg.chunk1.timestamp;
+   		   								esac;
+   	 	   									   
+   	next(send_msg.chunk1.lifetime):=case
+   								   state = s_rcv_a : key_lifetime ;
+   								   TRUE: send_msg.chunk1.lifetime;
+   								   esac;			
+   								   					
+   	next(send_msg.chunk1.identifier):=case
+   								   state = s_rcv_a : IB ;
+   								   TRUE: send_msg.chunk1.identifier;
+   								   esac;								
+   	next(send_msg.chunk1.session_key):=case
+   								   state = s_rcv_a : Kab ;
+   								   TRUE: send_msg.chunk1.session_key;
+   								   esac;	
+   								   							
+   		   
+   next(send_msg.chunk2.encryption_key):=case
+   										state = s_rcv_a : Kbs;
+   										TRUE: send_msg.chunk1.encryption_key;
+   		   								esac;
+   		   								
+   	next(send_msg.chunk2.timestamp):=case
+   										state = s_rcv_a : server_timestamp ;
+   										TRUE: send_msg.chunk1.timestamp;
+   		   								esac;
+   	 	   									   
+   	next(send_msg.chunk2.lifetime):=case
+   								   state = s_rcv_a : key_lifetime ;
+   								   TRUE: send_msg.chunk1.lifetime;
+   								   esac;			
+   								   					
+   	next(send_msg.chunk2.identifier):=case
+   								   state = s_rcv_a : IA ;
+   								   TRUE: send_msg.chunk1.identifier;
+   								   esac;								
+   	next(send_msg.chunk2.session_key):=case
+   								   state = s_rcv_a : Kab ;
+   								   TRUE: send_msg.chunk1.session_key;
+   								   esac;
+
+
+FAIRNESS running;
+
+
+
+MODULE main 
+VAR
+
+a_send:chunks;
+s_send:chunks;
+ 
+
+  a : process alice (s_send,a_send); 
+  b : process bob (a_send,s_send);
+  s : process server (a_send,s_send);
+  
+FAIRNESS running;
+
+LTLSPEC G(a.state != a_done & b.state != b_send_a & s.state != s_send_a)
