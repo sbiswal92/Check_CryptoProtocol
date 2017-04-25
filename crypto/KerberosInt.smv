@@ -394,9 +394,7 @@ ASSIGN
   
   
   next(state):= case
-  
-  				
-                 state = i_idle : i_eavesdrop_ab;  
+                 state = i_idle: i_eavesdrop_ab;  
                  
                  state =  i_eavesdrop_ab : i_send_b;
                  
@@ -433,6 +431,7 @@ ASSIGN
    						  state = i_eavesdrop_ab : rcv_msg.chunk1.identifier;
    						  TRUE: send_msg.chunk1.identifier;
    						  esac;	
+   						  
   ------------------------------------------------- 	
    	
    next(send_msg.chunk2.encryption_key):=case
@@ -489,8 +488,7 @@ VAR
 a_send:chunks;
 s_send:chunks;
 
- 
-  a : process alice (s_send,a_send); 
+  a : process alice (s_send,a_send);
   s : process server (a_send,s_send);
   b : process bob (a_send,s_send);
   i : process intruder (a_send,s_send);
@@ -500,6 +498,5 @@ FAIRNESS running;
 
 
 
-  CTLSPEC NAME ATTACK1:= AG(a.state !=a_done| b.state !=b_done | i.state !=i_done )
---CTLSPEC NAME AUTH:= AG(a.a_begincount_b >=b.b_endcount_a) 
---CTLSPEC NAME SECRECY:= AG(a.a_sendSK_b >=b.b_rcvSK_a) 
+CTLSPEC NAME AUTH:= AG(i.i_begincount_b >=b.b_endcount_a)  -- The intruder has got authentication to initiate session
+CTLSPEC NAME SECRECY:= AG(i.i_sendSK_b >=b.b_rcvSK_a) -- The intruder has has gotten hold of secret information.
