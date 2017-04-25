@@ -270,4 +270,6 @@ VAR
   
 FAIRNESS running;
 
-LTLSPEC  F(a.state = a_done & b.state = b_done & s.state = s_done)
+
+LTLSPEC  NAME PROTOCOL_COMPLETE1:=F(a.state = a_done & b.state = b_done & s.state = s_done)
+CTLSPEC  NAME PROTOCOL_COMPLETE2:=AG(a.state=a_initiate -> AF((a.state=a_done)&(b.state=b_done)))

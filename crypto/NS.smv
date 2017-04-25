@@ -166,12 +166,12 @@ VAR
   -- Alice's possible inputs
   a_rcv1:{ NONE, NA, NB, NI };
   a_rcv2:{ NONE, NA, NB, NI };
-  a_rcvkey:{ NOKEY, Ka, Kb, Ke };
+  a_rcvkey:{ NOKEY, Ka, Kb, Ki };
   
   -- Alice's possible outputs
   a_send1:{ NONE, NA, NB, NI };
   a_send2:{ NOID, Ia, Ib, Ii };
-  a_sendkey:{ NOKEY, Ka, Kb, Ke };
+  a_sendkey:{ NOKEY, Ka, Kb, Ki };
   
   
   -- Alice(a_rcvd,a_sent)
@@ -186,4 +186,5 @@ VAR
   
 FAIRNESS running;
 
-LTLSPEC F (a.state = a_done & b.state = b_done)
+
+CTLSPEC  NAME PROTOCOL_COMPLETE2:=AG(a.state=a_initiate -> AF((a.state=a_done)&(b.state=b_done)))

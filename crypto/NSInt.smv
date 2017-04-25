@@ -245,5 +245,4 @@ VAR
   
 FAIRNESS running;
 
-LTLSPEC F (a.state = a_done & b.state = b_done)
---LTLSPEC  G (i.rcv_secret_2 != NB  & i.rcv_secret_1 != NA)
+CTLSPEC  NAME INTRUDER_KNOWS_NO_INFO:=AG(a.state=a_initiate -> AF((a.state=a_done)&(b.state=b_done)&(i.rcv_secret_1!=a.send1)&(i.rcv_secret_2 !=a.rcv_secret)))

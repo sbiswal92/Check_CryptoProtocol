@@ -317,4 +317,5 @@ VAR
   
 --FAIRNESS running;
 
-LTLSPEC  G(a.rcv_newinfo != ISAB)
+CTLSPEC NAME INTRUDER_KNOWS_NO_INFO:=AG(a.state=a_initiate -> AF((a.state=a_done)&(b.state=b_done)&(i.rcv_newinfo!=a.rcv_newinfo)))
+
