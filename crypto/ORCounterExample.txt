@@ -1,0 +1,258 @@
+*** This is nuXmv 1.1.1 (compiled on Wed Jun  1 10:19:55 2016)
+*** Copyright (c) 2014-2016, Fondazione Bruno Kessler
+
+*** For more information on nuXmv see https://nuxmv.fbk.eu
+*** or email to <nuxmv@list.fbk.eu>.
+*** Please report bugs at https://nuxmv.fbk.eu/bugs
+*** (click on "Login Anonymously" to access)
+*** Alternatively write to <nuxmv@list.fbk.eu>.
+
+*** This version of nuXmv is linked to NuSMV 2.6.0.
+*** For more information on NuSMV see <http://nusmv.fbk.eu>
+*** or email to <nusmv-users@list.fbk.eu>.
+*** Copyright (C) 2010-2014, Fondazione Bruno Kessler
+
+*** This version of nuXmv is linked to the CUDD library version 2.4.1
+*** Copyright (c) 1995-2004, Regents of the University of Colorado
+
+*** This version of nuXmv is linked to the MiniSat SAT solver. 
+*** See http://minisat.se/MiniSat.html
+*** Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+*** Copyright (c) 2007-2010, Niklas Sorensson
+
+*** This version of nuXmv is linked to MathSAT
+*** Copyright (C) 2009-2016 by Fondazione Bruno Kessler
+*** Copyright (C) 2009-2016 by University of Trento
+*** See http://mathsat.fbk.eu
+
+WARNING *** The model contains PROCESSes or ISAs. ***
+WARNING *** The HRC hierarchy will not be usable. ***
+-- specification AG (a.state = a_initiate -> AF ((a.state = a_done & b.state = b_done) & i.rcv_newinfo != a.rcv_newinfo))  is false
+-- as demonstrated by the following execution sequence
+Trace Description: CTL Counterexample 
+Trace Type: Counterexample 
+  -> State: 1.1 <-
+    a_rcv1 = NONE
+    a_rcv2 = NOINFO
+    a_rcvkey = NOKEY
+    a_rcvid = NOID
+    a_send1 = NONE
+    a_send2 = NOINFO
+    a_sendkey = NOKEY
+    a_sendid = NOID
+    rcv1Chunk2 = NONE
+    rcv2Chunk2 = NOINFO
+    rcvkeyChunk2 = NOKEY
+    b_rcvid = NOID
+    b_sendid = NOID
+    send1Chunk2 = NONE
+    send2Chunk2 = NOINFO
+    sendkeyChunk2 = NOKEY
+    s_rcvid = NOID
+    s_sendid = NOID
+    sendInfoS = NOINFO
+    s_send1Chunk1 = NONE
+    s_send2Chunk1 = NOINFO
+    s_sendkeyChunk1 = NOKEY
+    s_send1Chunk2 = NONE
+    s_send2Chunk2 = NOINFO
+    s_sendkeyChunk2 = NOKEY
+    sentid = NOID
+    i_rcv1Chunk2 = NONE
+    i_rcv2Chunk2 = NOINFO
+    i_rcvkeyChunk2 = NOKEY
+    a.state = a_initiate
+    a.rcv_newinfo = NOINFO
+    i.rcv_newinfo = NOINFO
+    b.state = b_rcvA
+    b.rcv_newinfo = NOINFO
+    s.state = s_idle
+    s.gen_newinfo = NOINFO
+  -> Input: 1.2 <-
+    _process_selector_ = s
+    running = FALSE
+    s.running = TRUE
+    b.running = FALSE
+    i.running = FALSE
+    a.running = FALSE
+  -> State: 1.2 <-
+    s.state = s_rcvB
+  -> Input: 1.3 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -> State: 1.3 <-
+  -> Input: 1.4 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.4 <-
+  -> Input: 1.5 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.5 <-
+    a_send1 = NA
+    a_send2 = ISAB
+    a_sendkey = Kas
+    a_sendid = ISAB
+    a.state = a_wait
+  -> Input: 1.6 <-
+    _process_selector_ = i
+    i.running = TRUE
+    a.running = FALSE
+  -> State: 1.6 <-
+    b_sendid = IS
+    s_send1Chunk1 = NA
+    s_send2Chunk1 = ISAB
+    s_sendkeyChunk1 = Kas
+    i.rcv_newinfo = ISAB
+  -> Input: 1.7 <-
+    _process_selector_ = s
+    s.running = TRUE
+    i.running = FALSE
+  -> State: 1.7 <-
+  -> Input: 1.8 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -> State: 1.8 <-
+    b_sendid = ISAB
+    b.state = b_sendS
+  -> Input: 1.9 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.9 <-
+    b_sendid = IS
+  -> Input: 1.10 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.10 <-
+    a.state = a_done
+    a.rcv_newinfo = ISAB
+  -> Input: 1.11 <-
+    _process_selector_ = s
+    s.running = TRUE
+    a.running = FALSE
+  -> State: 1.11 <-
+  -> Input: 1.12 <-
+  -> State: 1.12 <-
+  -> Input: 1.13 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -> State: 1.13 <-
+    b_sendid = ISAB
+    send1Chunk2 = NB
+    send2Chunk2 = ISAB
+    sendkeyChunk2 = Kbs
+    b.state = b_rcvS
+  -> Input: 1.14 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.14 <-
+    b_sendid = IS
+  -> Input: 1.15 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.15 <-
+  -> Input: 1.16 <-
+    _process_selector_ = s
+    s.running = TRUE
+    a.running = FALSE
+  -> State: 1.16 <-
+    s.state = s_sendB
+    s.gen_newinfo = Kab
+  -> Input: 1.17 <-
+  -> State: 1.17 <-
+    a_sendid = IS
+    s_send2Chunk1 = Kab
+    s_send1Chunk2 = NB
+    s_send2Chunk2 = Kab
+    s_sendkeyChunk2 = Kbs
+    s.state = s_done
+  -> Input: 1.18 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -> State: 1.18 <-
+    b.state = b_sendA
+    b.rcv_newinfo = Kab
+  -> Input: 1.19 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.19 <-
+  -> Input: 1.20 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.20 <-
+  -> Input: 1.21 <-
+    _process_selector_ = s
+    s.running = TRUE
+    a.running = FALSE
+  -> State: 1.21 <-
+  -> Input: 1.22 <-
+  -> State: 1.22 <-
+  -> Input: 1.23 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -- Loop starts here
+  -> State: 1.23 <-
+    send1Chunk2 = NONE
+    send2Chunk2 = NOINFO
+    sendkeyChunk2 = NOKEY
+    b.state = b_done
+  -> Input: 1.24 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -- Loop starts here
+  -> State: 1.24 <-
+  -> Input: 1.25 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -- Loop starts here
+  -> State: 1.25 <-
+  -> Input: 1.26 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -- Loop starts here
+  -> State: 1.26 <-
+  -> Input: 1.27 <-
+    _process_selector_ = s
+    running = FALSE
+    s.running = TRUE
+  -- Loop starts here
+  -> State: 1.27 <-
+  -> Input: 1.28 <-
+    _process_selector_ = b
+    s.running = FALSE
+    b.running = TRUE
+  -- Loop starts here
+  -> State: 1.28 <-
+  -> Input: 1.29 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -- Loop starts here
+  -> State: 1.29 <-
+  -> Input: 1.30 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -- Loop starts here
+  -> State: 1.30 <-
+  -> Input: 1.31 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -> State: 1.31 <-

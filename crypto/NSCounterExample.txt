@@ -1,0 +1,276 @@
+*** This is nuXmv 1.1.1 (compiled on Wed Jun  1 10:19:55 2016)
+*** Copyright (c) 2014-2016, Fondazione Bruno Kessler
+
+*** For more information on nuXmv see https://nuxmv.fbk.eu
+*** or email to <nuxmv@list.fbk.eu>.
+*** Please report bugs at https://nuxmv.fbk.eu/bugs
+*** (click on "Login Anonymously" to access)
+*** Alternatively write to <nuxmv@list.fbk.eu>.
+
+*** This version of nuXmv is linked to NuSMV 2.6.0.
+*** For more information on NuSMV see <http://nusmv.fbk.eu>
+*** or email to <nusmv-users@list.fbk.eu>.
+*** Copyright (C) 2010-2014, Fondazione Bruno Kessler
+
+*** This version of nuXmv is linked to the CUDD library version 2.4.1
+*** Copyright (c) 1995-2004, Regents of the University of Colorado
+
+*** This version of nuXmv is linked to the MiniSat SAT solver. 
+*** See http://minisat.se/MiniSat.html
+*** Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+*** Copyright (c) 2007-2010, Niklas Sorensson
+
+*** This version of nuXmv is linked to MathSAT
+*** Copyright (C) 2009-2016 by Fondazione Bruno Kessler
+*** Copyright (C) 2009-2016 by University of Trento
+*** See http://mathsat.fbk.eu
+
+WARNING *** The model contains PROCESSes or ISAs. ***
+WARNING *** The HRC hierarchy will not be usable. ***
+-- specification AG (a.state = a_initiate -> AF (((a.state = a_done & b.state = b_done) & i.rcv_secret_1 != a.send1) & i.rcv_secret_2 != a.rcv_secret))  is false
+-- as demonstrated by the following execution sequence
+Trace Description: CTL Counterexample 
+Trace Type: Counterexample 
+  -> State: 1.1 <-
+    a_rcv1 = NONE
+    a_rcv2 = NONE
+    a_rcvkey = NOKEY
+    a_send1 = NONE
+    a_send2 = NOID
+    a_sendkey = NOKEY
+    c_send1 = NONE
+    c_send2 = NONE
+    c_sendkey = NOKEY
+    c_rcv1 = NONE
+    c_rcv2 = NOID
+    c_rcvkey = NOKEY
+    a.rcv_secret = NONE
+    a.state = a_initiate
+    i.rcv_secret_1 = NONE
+    i.rcv_secret_2 = NONE
+    b.state = b_free
+    b.rcv_secret = NONE
+    b.rcv_id = NOID
+  -> Input: 1.2 <-
+    _process_selector_ = main
+    running = TRUE
+    b.running = FALSE
+    i.running = FALSE
+    a.running = FALSE
+  -> State: 1.2 <-
+  -> Input: 1.3 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.3 <-
+  -> Input: 1.4 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.4 <-
+    c_send2 = NOID
+  -> Input: 1.5 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.5 <-
+    c_rcv1 = NA
+    c_rcv2 = Ia
+    c_rcvkey = Ki
+    a.state = a_wait
+  -> Input: 1.6 <-
+    _process_selector_ = i
+    i.running = TRUE
+    a.running = FALSE
+  -> State: 1.6 <-
+    c_send1 = NA
+    c_send2 = Ia
+    c_sendkey = Kb
+    i.rcv_secret_1 = NA
+  -> Input: 1.7 <-
+    _process_selector_ = main
+    running = TRUE
+    i.running = FALSE
+  -> State: 1.7 <-
+  -> Input: 1.8 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.8 <-
+    b.state = b_receive
+    b.rcv_secret = NA
+    b.rcv_id = Ia
+  -> Input: 1.9 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.9 <-
+  -> Input: 1.10 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.10 <-
+  -> Input: 1.11 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -> State: 1.11 <-
+  -> Input: 1.12 <-
+  -> State: 1.12 <-
+  -> Input: 1.13 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.13 <-
+    b.state = b_checks_sender
+  -> Input: 1.14 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.14 <-
+  -> Input: 1.15 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.15 <-
+  -> Input: 1.16 <-
+    _process_selector_ = b
+    b.running = TRUE
+    a.running = FALSE
+  -> State: 1.16 <-
+    a_rcv1 = NA
+    a_rcv2 = NB
+    a_rcvkey = Ka
+  -> Input: 1.17 <-
+    _process_selector_ = main
+    running = TRUE
+    b.running = FALSE
+  -> State: 1.17 <-
+  -> Input: 1.18 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.18 <-
+  -> Input: 1.19 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.19 <-
+  -> Input: 1.20 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.20 <-
+    a.rcv_secret = NB
+    a.state = a_rcv_and_send
+  -> Input: 1.21 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -> State: 1.21 <-
+  -> Input: 1.22 <-
+  -> State: 1.22 <-
+  -> Input: 1.23 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.23 <-
+  -> Input: 1.24 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.24 <-
+  -> Input: 1.25 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.25 <-
+    c_rcv1 = NB
+    c_rcv2 = NOID
+    a.state = a_done
+  -> Input: 1.26 <-
+    _process_selector_ = b
+    b.running = TRUE
+    a.running = FALSE
+  -> State: 1.26 <-
+  -> Input: 1.27 <-
+    _process_selector_ = main
+    running = TRUE
+    b.running = FALSE
+  -> State: 1.27 <-
+  -> Input: 1.28 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -> State: 1.28 <-
+  -> Input: 1.29 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -> State: 1.29 <-
+    c_send1 = NB
+    c_send2 = NOID
+    i.rcv_secret_2 = NB
+  -> Input: 1.30 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -> State: 1.30 <-
+  -> Input: 1.31 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -> State: 1.31 <-
+  -> Input: 1.32 <-
+  -> State: 1.32 <-
+  -> Input: 1.33 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -- Loop starts here
+  -> State: 1.33 <-
+    b.state = b_done
+  -> Input: 1.34 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -- Loop starts here
+  -> State: 1.34 <-
+  -> Input: 1.35 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -- Loop starts here
+  -> State: 1.35 <-
+  -> Input: 1.36 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -- Loop starts here
+  -> State: 1.36 <-
+  -> Input: 1.37 <-
+  -- Loop starts here
+  -> State: 1.37 <-
+  -> Input: 1.38 <-
+    _process_selector_ = b
+    running = FALSE
+    b.running = TRUE
+  -- Loop starts here
+  -> State: 1.38 <-
+  -> Input: 1.39 <-
+    _process_selector_ = i
+    b.running = FALSE
+    i.running = TRUE
+  -- Loop starts here
+  -> State: 1.39 <-
+  -> Input: 1.40 <-
+    _process_selector_ = a
+    i.running = FALSE
+    a.running = TRUE
+  -- Loop starts here
+  -> State: 1.40 <-
+  -> Input: 1.41 <-
+    _process_selector_ = main
+    running = TRUE
+    a.running = FALSE
+  -> State: 1.41 <-
